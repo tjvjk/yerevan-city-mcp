@@ -1,5 +1,7 @@
 # yerevan-city-mcp
 
+![Demo](files/yerevan-city-mcp-demo.gif)
+
 Order groceries from [yerevan-city.am](https://yerevan-city.am) right from a
 conversation with your AI assistant. Just say what you need — the agent finds
 the products and builds the cart for you.
