@@ -1,0 +1,69 @@
+yerevan-city-mcp Source-Available License
+
+Copyright (c) 2026 the author ("Licensor", https://github.com/tjvjk/)
+
+1. Grant
+
+Subject to the terms below, Licensor grants any individual or entity
+("You") a worldwide, royalty-free, non-exclusive license to use, copy,
+modify, and distribute this software and its source code (the "Software"),
+for any Non-Commercial Use.
+
+"Non-Commercial Use" means use of the Software that is not Commercial Use.
+
+"Commercial Use" means any use of the Software, in whole or in part,
+in or in connection with a product, service, or offering — including a
+paid product, a paid service, a subscription, a SaaS offering, or any
+other offering from which You or a third party derives revenue or other
+commercial advantage — regardless of whether the end user of that product
+or service pays for it directly. Commercial Use includes, without
+limitation, hosting the Software (or a modified version of it) as part of
+a service made available to others, and bundling the Software into a
+commercial product.
+
+2. Commercial Use requires a separate license
+
+Commercial Use of the Software is not permitted under this license. If You
+wish to make Commercial Use of the Software, You must first obtain a
+separate written commercial license from Licensor, which may include
+royalty or other payment terms. To request a commercial license, contact
+Licensor via GitHub: https://github.com/tjvjk/
+
+3. Conditions
+
+Redistribution of the Software or derivative works, for Non-Commercial Use,
+must retain this license text and the copyright notice above.
+
+4. No trademark rights
+
+This license does not grant You any right to use Licensor's name, trademarks,
+or logos.
+
+5. Disclaimer of warranty
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHOR OR COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
+This Software is provided for educational purposes only, as an example of
+integrating an AI agent with a third-party web API. It is provided "as is"
+without any guarantee of correctness, fitness for any purpose, or continued
+compatibility with the third-party service it interacts with.
+
+6. No affiliation
+
+The Software is an independent, unofficial project. Licensor is not
+affiliated with, endorsed by, or sponsored by Yerevan City / City
+Supermarket ("yerevan-city.am") or any of its owners or operators. Any
+trademarks, product names, or company names referenced by the Software
+belong to their respective owners.
+
+7. Termination
+
+This license terminates automatically for any User that makes Commercial
+Use of the Software without a separate written commercial license from
+Licensor, or that otherwise breaches these terms.
