@@ -42,8 +42,7 @@ export class NoDeliveryAddressError extends Error {
  * yerevan-city.am prices some products by the piece and others by weight
  * (`isKilogram` on the product). Piece-counted products are added with
  * `quantity` set to a unit count and `weight` at 0; weight-based products are
- * added with `weight` set to a gram amount and `quantity` mirroring it — see
- * API-NOTES.md for the captured examples this mirrors.
+ * added with `weight` set to a gram amount and `quantity` mirroring it.
  */
 export class ShopCart {
   constructor(
@@ -71,7 +70,16 @@ export class ShopCart {
       items: (raw.items ?? [])
         .filter((item) => !item.isBag)
         .map(toCartItem),
-      address: raw.cartUserAddress,
+      address:
+        raw.cartUserAddress === null
+          ? null
+          : {
+              id: raw.cartUserAddress.id,
+              lat: raw.cartUserAddress.lat,
+              lng: raw.cartUserAddress.lng,
+              street: raw.cartUserAddress.street,
+              city: raw.cartUserAddress.city,
+            },
     };
   }
 

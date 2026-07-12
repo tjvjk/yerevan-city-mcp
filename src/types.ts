@@ -45,6 +45,12 @@ export interface CartAddress {
   city: string;
 }
 
+/**
+ * yerevan-city.am's own cart endpoint reports `totalPrice: 0` even with
+ * items present in some observed responses — this mirrors the API as-is
+ * rather than computing a total client-side, since the per-item `price` is
+ * accurate. Sum `items[].price` if a reliable total is needed.
+ */
 export interface Cart {
   totalPrice: number;
   deliveryFee: number;
