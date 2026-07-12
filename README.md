@@ -124,6 +124,19 @@ npm run build
 npm start
 ```
 
+## License
+
+Free for personal and other non-commercial use. Commercial use requires a
+separate paid license — see [LICENSE](LICENSE) for details, and reach out
+via [GitHub](https://github.com/tjvjk/) to arrange one.
+
+## Disclaimer
+
+This is an educational, unofficial project — an example of connecting an AI
+agent to a third-party web API. It is provided as-is with no warranty of
+any kind. It is not affiliated with, endorsed by, or sponsored by Yerevan
+City / City Supermarket in any way.
+
 ## TODO
 
 - How does the flow behave for a phone number with no existing
