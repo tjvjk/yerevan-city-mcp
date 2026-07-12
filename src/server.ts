@@ -86,7 +86,8 @@ export function buildServer(): McpServer {
     "add_to_cart",
     {
       description:
-        "Add a product to the yerevan-city.am cart, either by piece count or by weight in grams. Never places an order or pays — only builds the cart for the user to check out themselves.",
+        "Add a product to the yerevan-city.am cart, either by piece count or by weight in grams. Never places an order or pays — only builds the cart for the user to check out themselves. " +
+        "After adding, always check the returned item: yerevan-city.am accepts the add call even for products that are out of stock at the delivery address, and only reports that via isMissing/availableCount/availableWeight on the item that comes back. If isMissing is true, tell the user the product is unavailable instead of assuming it was added successfully.",
       inputSchema: {
         productId: z.number().int().describe("Product id from search_products"),
         count: z.number().int().min(1).optional().describe("Number of pieces, for piece-counted products"),
@@ -101,7 +102,9 @@ export function buildServer(): McpServer {
       if (grams !== undefined) await cart.addByWeight(productId, grams, addressId);
       else if (count !== undefined) await cart.addByCount(productId, count, addressId);
       else throw new Error("Either count or grams must be provided");
-      return textResult("Added to cart");
+      const contents = await cart.contents(addressId);
+      const item = contents.items.find((entry) => entry.id === productId);
+      return textResult(JSON.stringify(item ?? { id: productId, isMissing: true }, null, 2));
     },
   );
 
@@ -125,13 +128,17 @@ export function buildServer(): McpServer {
   server.registerTool(
     "get_cart",
     {
-      description: "Show the current yerevan-city.am cart contents and total price. Does not place an order.",
-      inputSchema: {},
+      description:
+        "Show the current yerevan-city.am cart contents and total price. Does not place an order. " +
+        "Check each item's isMissing field before telling the user their cart is ready — a missing item stays in the cart but cannot actually be delivered (see availableCount/availableWeight for what's actually in stock).",
+      inputSchema: {
+        addressId: z.number().int().optional().describe("Delivery address id from list_addresses, defaults to the account's default address"),
+      },
     },
-    async () => {
+    async ({ addressId }) => {
       const client = await authenticated.client();
       const session = await authenticated.session();
-      const cart = await new ShopCart(client, session).contents();
+      const cart = await new ShopCart(client, session).contents(addressId);
       return textResult(JSON.stringify(cart, null, 2));
     },
   );
