@@ -71,13 +71,26 @@ describe("ShopCart.remove", () => {
 });
 
 describe("ShopCart.contents", () => {
+  it("passes the resolved address and coordinates in the request body", async () => {
+    const addressId = Math.floor(Math.random() * 1000000);
+    const session = randomSession();
+    const requests = await withFakeFetch(
+      { success: true, data: { totalPrice: 0, deliveryFee: 0, items: null, cartUserAddress: null }, messages: [] },
+      async (requests) => {
+        await new ShopCart(new ShopApiClient(null), session).contents(addressId);
+        return requests;
+      },
+    );
+    expect(requests[0]?.body).toEqual({ addressId, lat: session.lat, lng: session.lng });
+  });
+
   it("excludes auto-added packaging bag line items", async () => {
     const raw = {
       totalPrice: 802.5,
       deliveryFee: 0,
       items: [
-        { id: 1, name: "Banana Sabrostar kg", price: 802.5, count: 0, weight: 1500, isKilogram: true, isBag: false },
-        { id: 2, name: 'Polyethylene pack "Yerevan City"', price: 50, count: 1, weight: 0, isKilogram: false, isBag: true },
+        { id: 1, name: "Banana Sabrostar kg", price: 802.5, count: 0, weight: 1500, isKilogram: true, isBag: false, isMissing: false, stockDetails: { availableCount: 50, availableWeight: 0 } },
+        { id: 2, name: 'Polyethylene pack "Yerevan City"', price: 50, count: 1, weight: 0, isKilogram: false, isBag: true, isMissing: false, stockDetails: null },
       ],
       cartUserAddress: null,
     };
@@ -85,8 +98,38 @@ describe("ShopCart.contents", () => {
       new ShopCart(new ShopApiClient(null), randomSession()).contents(),
     );
     expect(cart.items).toEqual([
-      { id: 1, name: "Banana Sabrostar kg", price: 802.5, count: 0, weight: 1500, isKilogram: true, isBag: false },
+      { id: 1, name: "Banana Sabrostar kg", price: 802.5, count: 0, weight: 1500, isKilogram: true, isBag: false, isMissing: false, availableCount: 50, availableWeight: 0 },
     ]);
+  });
+
+  it("surfaces isMissing and available stock for an out-of-stock item", async () => {
+    const raw = {
+      totalPrice: 265,
+      deliveryFee: 700,
+      items: [
+        { id: 69658, name: "Potato (armenian) kg", price: 265, count: 0, weight: 1000, isKilogram: true, isBag: false, isMissing: true, stockDetails: { availableCount: 0, availableWeight: 0 } },
+      ],
+      cartUserAddress: null,
+    };
+    const cart = await withFakeFetch({ success: true, data: raw, messages: [] }, () =>
+      new ShopCart(new ShopApiClient(null), randomSession()).contents(),
+    );
+    expect(cart.items[0]).toMatchObject({ isMissing: true, availableCount: 0, availableWeight: 0 });
+  });
+
+  it("defaults missing stock details to zero availability", async () => {
+    const raw = {
+      totalPrice: 0,
+      deliveryFee: 0,
+      items: [
+        { id: 1, name: "Item without stock details", price: 100, count: 1, weight: 0, isKilogram: false, isBag: false, isMissing: false, stockDetails: null },
+      ],
+      cartUserAddress: null,
+    };
+    const cart = await withFakeFetch({ success: true, data: raw, messages: [] }, () =>
+      new ShopCart(new ShopApiClient(null), randomSession()).contents(),
+    );
+    expect(cart.items[0]).toMatchObject({ availableCount: 0, availableWeight: 0 });
   });
 
   it("returns an empty item list when the cart has no items yet", async () => {

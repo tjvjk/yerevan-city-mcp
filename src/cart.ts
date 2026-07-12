@@ -10,6 +10,8 @@ interface RawCartItem {
   weight: number;
   isKilogram: boolean;
   isBag: boolean;
+  isMissing: boolean;
+  stockDetails: { availableCount: number; availableWeight: number } | null;
 }
 
 interface RawCart {
@@ -36,13 +38,20 @@ export class NoDeliveryAddressError extends Error {
 /**
  * Adds, updates, removes and reads items in the yerevan-city.am cart for the
  * currently logged-in user. The remote cart is scoped to a delivery address,
- * so every mutation needs one; when the caller doesn't supply one, the
- * account's default address (from list_addresses) is used.
+ * so every call needs one; when the caller doesn't supply one, the account's
+ * default address (from list_addresses) is used.
  *
  * yerevan-city.am prices some products by the piece and others by weight
  * (`isKilogram` on the product). Piece-counted products are added with
  * `quantity` set to a unit count and `weight` at 0; weight-based products are
  * added with `weight` set to a gram amount and `quantity` mirroring it.
+ *
+ * Reading the cart without passing a delivery address makes the API skip
+ * stock and pricing checks entirely: `totalPrice`/`deliveryFee` come back as
+ * 0 and every item's stock fields come back null. Passing the address is
+ * what makes the API report real totals and per-item availability
+ * (`isMissing` / `stockDetails`), matching what the site itself shows on its
+ * cart page.
  */
 export class ShopCart {
   constructor(
@@ -62,8 +71,13 @@ export class ShopCart {
     await this.update(productId, 0, 0, addressId);
   }
 
-  async contents(): Promise<Cart> {
-    const raw = await this.client.post<RawCart>("/api/Cart/GetCartItems", {});
+  async contents(addressId?: number): Promise<Cart> {
+    const resolvedAddressId = this.resolveAddressId(addressId);
+    const raw = await this.client.post<RawCart>("/api/Cart/GetCartItems", {
+      addressId: resolvedAddressId,
+      lat: this.session.lat,
+      lng: this.session.lng,
+    });
     return {
       totalPrice: raw.totalPrice,
       deliveryFee: raw.deliveryFee,
@@ -89,10 +103,8 @@ export class ShopCart {
     quantity: number,
     addressId: number | undefined,
   ): Promise<void> {
-    const resolvedAddressId = addressId ?? this.session.addressId;
-    if (resolvedAddressId === null) throw new NoDeliveryAddressError();
     await this.client.post<boolean>("/api/Cart/UpdateItems", {
-      addressId: resolvedAddressId,
+      addressId: this.resolveAddressId(addressId),
       id: productId,
       weight,
       quantity,
@@ -103,6 +115,12 @@ export class ShopCart {
       lng: this.session.lng,
       isGreenLine: false,
     });
+  }
+
+  private resolveAddressId(addressId: number | undefined): number {
+    const resolved = addressId ?? this.session.addressId;
+    if (resolved === null) throw new NoDeliveryAddressError();
+    return resolved;
   }
 }
 
@@ -115,5 +133,8 @@ function toCartItem(raw: RawCartItem): CartItem {
     weight: raw.weight,
     isKilogram: raw.isKilogram,
     isBag: raw.isBag,
+    isMissing: raw.isMissing,
+    availableCount: raw.stockDetails?.availableCount ?? 0,
+    availableWeight: raw.stockDetails?.availableWeight ?? 0,
   };
 }
