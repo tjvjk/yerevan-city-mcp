@@ -1,0 +1,16 @@
+node_modules/
+dist/
+tmp/
+
+*.log
+npm-debug.log*
+
+.env
+.env.*
+
+# never commit a session file if one ever ends up inside the repo by mistake
+session.json
+
+.DS_Store
+
+CLAUDE.md
