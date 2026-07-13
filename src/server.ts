@@ -6,6 +6,8 @@ import { Addresses } from "./addresses.js";
 import { ProductSearch } from "./products.js";
 import { ShopCart } from "./cart.js";
 import { SessionStore } from "./session-store.js";
+import { searchRecipes, suggestRecipes } from "./recipes.js";
+import { RecipeStore } from "./recipe-store.js";
 
 /**
  * Builds the yerevan-city.am MCP server: registers every tool against a
@@ -16,6 +18,7 @@ export function buildServer(): McpServer {
   const sessions = new SessionStore();
   const auth = new Auth(sessions);
   const authenticated = new AuthenticatedClient(sessions);
+  const savedRecipes = new RecipeStore();
 
   const server = new McpServer({
     name: "yerevan-city-mcp",
@@ -155,6 +158,98 @@ export function buildServer(): McpServer {
       const session = await authenticated.session();
       const cart = await new ShopCart(client, session).contents(addressId);
       return textResult(JSON.stringify(cart, null, 2));
+    },
+  );
+
+  server.registerTool(
+    "get_recipe",
+    {
+      description:
+        "Look up recipes by dish name in TheMealDB (free English recipe database) and return each match's ingredient list with measures. No login needed. " +
+        "If several recipes match, show the user the names and let them pick one before touching the cart. " +
+        "If nothing matches, retry once with a simpler, more canonical dish name (e.g. 'bolognese' instead of 'pasta with beef'). If the database still has nothing, do not stop: the database only holds a few hundred dishes, so write the standard ingredient list with measures from your own knowledge, tell the user it came from you rather than the database, and continue the same shopping flow; offer save_recipe so the dish is available next time. " +
+        "To shop for a recipe: for each ingredient call search_products with a simplified product term (e.g. 'Tomato Puree' -> 'tomato paste', 'Minced Beef' -> 'ground beef'), then add_to_cart the best match sized to the recipe's measure. " +
+        "Skip pantry staples the user almost certainly has (salt, pepper, water) but say which were skipped. If an ingredient has no matching product, report it instead of silently dropping it. Finish by stating the cart total.",
+      inputSchema: {
+        query: z.string().describe("Dish name, e.g. 'carbonara'"),
+        includeInstructions: z
+          .boolean()
+          .default(false)
+          .describe("Set true to also return cooking instructions (longer response)"),
+      },
+    },
+    async ({ query, includeInstructions }) => {
+      const recipes = await searchRecipes(query, includeInstructions);
+      if (recipes.length === 0) return textResult(`No recipes found for "${query}"`);
+      return textResult(JSON.stringify(recipes, null, 2));
+    },
+  );
+
+  server.registerTool(
+    "suggest_recipes",
+    {
+      description:
+        "Suggest dishes that feature one main ingredient (e.g. 'chicken', 'salmon', 'chicken breast'), from TheMealDB. Returns dish names only, so it's cheap to call. No login needed. " +
+        "Use this when the user asks what to cook with an ingredient rather than naming a dish. For extra wishes like 'with vegetables', pick the suggestions that fit (use your knowledge of the dishes, or check candidates with get_recipe) and offer the user a short shortlist. " +
+        "If nothing comes back, try a more specific form of the ingredient ('minced beef', 'chicken breast') — and if the database still has nothing, suggest fitting dishes from your own knowledge instead and say so. " +
+        "Once the user picks a dish, continue with get_recipe and the usual shopping flow.",
+      inputSchema: {
+        ingredient: z.string().describe("One main ingredient in English, e.g. 'chicken'"),
+      },
+    },
+    async ({ ingredient }) => {
+      const names = await suggestRecipes(ingredient);
+      if (names.length === 0) return textResult(`No recipes found featuring "${ingredient}"`);
+      return textResult(JSON.stringify(names, null, 2));
+    },
+  );
+
+  server.registerTool(
+    "save_recipe",
+    {
+      description:
+        "Save a recipe the user liked so it can be cooked again later. Pass the recipe as returned by get_recipe, with any tweaks the user asked for, and include the instructions when available (fetch them with get_recipe includeInstructions=true if missing). Overwrites a previously saved recipe with the same name.",
+      inputSchema: {
+        name: z.string().describe("Recipe name"),
+        category: z.string().default("").describe("e.g. 'Pasta'"),
+        area: z.string().default("").describe("Cuisine, e.g. 'Italian'"),
+        ingredients: z
+          .array(z.object({ name: z.string(), measure: z.string() }))
+          .describe("Ingredient list with measures"),
+        instructions: z.string().optional().describe("Cooking instructions"),
+      },
+    },
+    async ({ name, category, area, ingredients, instructions }) => {
+      await savedRecipes.save({ name, category, area, ingredients, instructions });
+      return textResult(`Saved recipe "${name}"`);
+    },
+  );
+
+  server.registerTool(
+    "list_saved_recipes",
+    {
+      description:
+        "List the recipes the user saved earlier. Check here first when the user refers to a saved or favorite recipe (e.g. 'my carbonara', 'the usual'), then shop for its ingredients the same way as with get_recipe: search_products per ingredient, add_to_cart, skip stated pantry staples, and finish with the cart total.",
+      inputSchema: {},
+    },
+    async () => {
+      const recipes = await savedRecipes.all();
+      if (recipes.length === 0) return textResult("No saved recipes yet");
+      return textResult(JSON.stringify(recipes, null, 2));
+    },
+  );
+
+  server.registerTool(
+    "delete_saved_recipe",
+    {
+      description: "Delete a previously saved recipe by name.",
+      inputSchema: {
+        name: z.string().describe("Name of the saved recipe to delete"),
+      },
+    },
+    async ({ name }) => {
+      const removed = await savedRecipes.delete(name);
+      return textResult(removed ? `Deleted saved recipe "${name}"` : `No saved recipe named "${name}"`);
     },
   );
 

@@ -17,6 +17,19 @@ export interface ProductSearchResult {
   products: Product[];
 }
 
+export interface RecipeIngredient {
+  name: string;
+  measure: string;
+}
+
+export interface Recipe {
+  name: string;
+  category: string;
+  area: string;
+  ingredients: RecipeIngredient[];
+  instructions?: string;
+}
+
 export interface Address {
   id: number;
   lat: number;

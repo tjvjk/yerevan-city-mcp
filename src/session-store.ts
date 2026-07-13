@@ -44,7 +44,7 @@ export class SessionStore {
   }
 }
 
-function isNotFound(error: unknown): boolean {
+export function isNotFound(error: unknown): boolean {
   return (
     typeof error === "object" &&
     error !== null &&

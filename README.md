@@ -20,6 +20,12 @@ app.
 - Show your saved delivery addresses
 - Add and remove products from the cart
 - Show the cart contents and total price
+- Look up a recipe and shop for its ingredients — try *"Get the recipe for
+  chicken alfredo and add the ingredients to my cart"*
+- Get dish ideas from an ingredient — *"What can I cook with chicken and
+  vegetables?"*
+- Keep your favorites — *"That was great, save this recipe"*, then later
+  *"Cook my saved carbonara"*
 
 ## Installation
 
@@ -113,6 +119,12 @@ it keeps working across restarts.
 - `list_addresses` — the account's saved delivery addresses
 - `add_to_cart` / `remove_from_cart` — build the cart, by piece count or by weight
 - `get_cart` — current cart contents and total price
+- `get_recipe` — look up a recipe (ingredients + measures) by dish name, via
+  the free English [TheMealDB](https://www.themealdb.com) API; no login needed
+- `suggest_recipes` — list dishes that feature a main ingredient, for
+  "what can I cook with X?" questions
+- `save_recipe` / `list_saved_recipes` / `delete_saved_recipe` — keep favorite
+  recipes locally (`~/.yerevan-city-mcp/recipes.json`) and reuse them later
 
 ### Development
 
