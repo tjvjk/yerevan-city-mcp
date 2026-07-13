@@ -145,6 +145,5 @@ City / City Supermarket in any way.
 - Publish npm package and install via npx
 - Add formatter and linter
 - What if the account has no saved address at all (not just none given
-  explicitly)? `add_to_cart`/`get_cart` currently throw
-  `NoDeliveryAddressError` in that case — needs a real account with zero
-  addresses to confirm that's the right behavior end to end.
+  explicitly)?
+- add Carrefour, Zovk, Sas, 88, Tsiran to find a better price
