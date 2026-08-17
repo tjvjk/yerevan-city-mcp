@@ -23,83 +23,80 @@ app.
 
 ## Installation
 
-1. Download this folder and build the project:
+The server is published on npm as
+[`yerevan-city-mcp`](https://www.npmjs.com/package/yerevan-city-mcp) and runs
+via `npx` — no download or build step needed.
 
-   ```bash
-   npm install
-   npm run build
-   ```
+Connect it in your AI assistant's settings.
 
-2. Connect the server in your AI assistant's settings.
+**Claude Code** — run in a terminal:
 
-   **Claude Code** — run in a terminal:
+```bash
+claude mcp add yerevan-city -- npx -y yerevan-city-mcp
+```
 
-   ```bash
-   claude mcp add yerevan-city -- node /full/path/to/dist/index.js
-   ```
+**Claude Desktop** — open the MCP server config file
+(Settings → Developer → Edit Config) and add:
 
-   **Claude Desktop** — open the MCP server config file
-   (Settings → Developer → Edit Config) and add:
+```json
+{
+  "mcpServers": {
+    "yerevan-city": {
+      "command": "npx",
+      "args": ["-y", "yerevan-city-mcp"]
+    }
+  }
+}
+```
 
-   ```json
-   {
-     "mcpServers": {
-       "yerevan-city": {
-         "command": "node",
-         "args": ["/full/path/to/dist/index.js"]
-       }
-     }
-   }
-   ```
+Restart the app after saving.
 
-   Restart the app after saving.
+**Codex CLI** — run in a terminal:
 
-   **Codex CLI** — run in a terminal:
+```bash
+codex mcp add yerevan-city -- npx -y yerevan-city-mcp
+```
 
-   ```bash
-   codex mcp add yerevan-city -- node /full/path/to/dist/index.js
-   ```
+Or add it directly to `~/.codex/config.toml`:
 
-   Or add it directly to `~/.codex/config.toml`:
+```toml
+[mcp_servers.yerevan-city]
+command = "npx"
+args = ["-y", "yerevan-city-mcp"]
+```
 
-   ```toml
-   [mcp_servers.yerevan-city]
-   command = "node"
-   args = ["/full/path/to/dist/index.js"]
-   ```
+**opencode** — add it to `opencode.json`:
 
-   **opencode** — add it to `opencode.json`:
+```json
+{
+  "mcp": {
+    "yerevan-city": {
+      "type": "local",
+      "command": ["npx", "-y", "yerevan-city-mcp"],
+      "enabled": true
+    }
+  }
+}
+```
 
-   ```json
-   {
-     "mcp": {
-       "yerevan-city": {
-         "type": "local",
-         "command": ["node", "/full/path/to/dist/index.js"],
-         "enabled": true
-       }
-     }
-   }
-   ```
+**Antigravity** — open the MCP store from the editor's agent panel,
+select "Manage MCP Servers" → "View raw config", and add to
+`~/.gemini/config/mcp_config.json`:
 
-   **Antigravity** — open the MCP store from the editor's agent panel,
-   select "Manage MCP Servers" → "View raw config", and add to
-   `~/.gemini/config/mcp_config.json`:
+```json
+{
+  "mcpServers": {
+    "yerevan-city": {
+      "command": "npx",
+      "args": ["-y", "yerevan-city-mcp"]
+    }
+  }
+}
+```
 
-   ```json
-   {
-     "mcpServers": {
-       "yerevan-city": {
-         "command": "node",
-         "args": ["/full/path/to/dist/index.js"]
-       }
-     }
-   }
-   ```
-
-3. Done. Tell the assistant something like "order milk and bread" — the
-   first time it touches the cart it will ask you to confirm your phone
-   number by SMS, and it stays logged in after that.
+Done. Tell the assistant something like "order milk and bread" — the
+first time it touches the cart it will ask you to confirm your phone
+number by SMS, and it stays logged in after that.
 
 ## Technical details
 
@@ -124,6 +121,10 @@ npm run build
 npm start
 ```
 
+To point an AI assistant at a local build instead of the published package,
+use `node /full/path/to/dist/index.js` as the command in place of
+`npx -y yerevan-city-mcp`.
+
 ## License
 
 Free for personal and other non-commercial use. Commercial use requires a
@@ -139,10 +140,6 @@ City / City Supermarket in any way.
 
 ## TODO
 
-- How does the flow behave for a phone number with no existing
-  yerevan-city.am account yet?
-- How will this work on Windows? Linux?
-- Publish npm package and install via npx
-- What if the account has no saved address at all (not just none given
-  explicitly)?
+- How does the flow behave for a phone number with no existing yerevan-city.am account yet?
+- What if the account has no saved address at all (not just none given explicitly)?
 - add Carrefour, Zovk, Sas, 88, Tsiran to find a better price
