@@ -143,7 +143,6 @@ City / City Supermarket in any way.
   yerevan-city.am account yet?
 - How will this work on Windows? Linux?
 - Publish npm package and install via npx
-- Add formatter and linter
 - What if the account has no saved address at all (not just none given
   explicitly)?
 - add Carrefour, Zovk, Sas, 88, Tsiran to find a better price
