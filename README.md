@@ -140,8 +140,6 @@ City / City Supermarket in any way.
 
 ## TODO
 
-- How does the flow behave for a phone number with no existing
-  yerevan-city.am account yet?
-- What if the account has no saved address at all (not just none given
-  explicitly)?
+- How does the flow behave for a phone number with no existing yerevan-city.am account yet?
+- What if the account has no saved address at all (not just none given explicitly)?
 - add Carrefour, Zovk, Sas, 88, Tsiran to find a better price
