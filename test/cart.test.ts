@@ -1,7 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+import { NoDeliveryAddressError, ShopCart } from "../src/cart.js";
+import type { StoredSession } from "../src/session-store.js";
 import { ShopApiClient } from "../src/shop-api-client.js";
-import { ShopCart, NoDeliveryAddressError } from "../src/cart.js";
-import { StoredSession } from "../src/session-store.js";
 import { withFakeFetch } from "./fake-fetch.js";
 
 function randomSession(overrides: Partial<StoredSession> = {}): StoredSession {
@@ -11,7 +11,7 @@ function randomSession(overrides: Partial<StoredSession> = {}): StoredSession {
     name: "Testuser",
     surname: "Testovich",
     addressId: Math.floor(Math.random() * 1000000),
-    lat: 40.100000,
+    lat: 40.10000,
     lng: 44.400000,
     ...overrides,
   };
@@ -21,12 +21,19 @@ describe("ShopCart.addByWeight", () => {
   it("sends the gram amount as both weight and quantity", async () => {
     const productId = Math.floor(Math.random() * 1000000);
     const grams = Math.floor(500 + Math.random() * 2000);
-    const requests = await withFakeFetch({ success: true, data: true, messages: [] }, async (requests) => {
-      const cart = new ShopCart(new ShopApiClient(null), randomSession());
-      await cart.addByWeight(productId, grams);
-      return requests;
+    const requests = await withFakeFetch(
+      { success: true, data: true, messages: [] },
+      async (requests) => {
+        const cart = new ShopCart(new ShopApiClient(null), randomSession());
+        await cart.addByWeight(productId, grams);
+        return requests;
+      },
+    );
+    expect(requests[0]?.body).toMatchObject({
+      id: productId,
+      weight: grams,
+      quantity: grams,
     });
-    expect(requests[0]?.body).toMatchObject({ id: productId, weight: grams, quantity: grams });
   });
 });
 
@@ -34,26 +41,39 @@ describe("ShopCart.addByCount", () => {
   it("sends the piece count as quantity with weight at zero", async () => {
     const productId = Math.floor(Math.random() * 1000000);
     const count = Math.floor(1 + Math.random() * 10);
-    const requests = await withFakeFetch({ success: true, data: true, messages: [] }, async (requests) => {
-      const cart = new ShopCart(new ShopApiClient(null), randomSession());
-      await cart.addByCount(productId, count);
-      return requests;
+    const requests = await withFakeFetch(
+      { success: true, data: true, messages: [] },
+      async (requests) => {
+        const cart = new ShopCart(new ShopApiClient(null), randomSession());
+        await cart.addByCount(productId, count);
+        return requests;
+      },
+    );
+    expect(requests[0]?.body).toMatchObject({
+      id: productId,
+      weight: 0,
+      quantity: count,
     });
-    expect(requests[0]?.body).toMatchObject({ id: productId, weight: 0, quantity: count });
   });
 
   it("uses the explicitly given addressId over the session default", async () => {
     const explicitAddressId = Math.floor(Math.random() * 1000000);
-    const requests = await withFakeFetch({ success: true, data: true, messages: [] }, async (requests) => {
-      const cart = new ShopCart(new ShopApiClient(null), randomSession());
-      await cart.addByCount(1, 1, explicitAddressId);
-      return requests;
-    });
+    const requests = await withFakeFetch(
+      { success: true, data: true, messages: [] },
+      async (requests) => {
+        const cart = new ShopCart(new ShopApiClient(null), randomSession());
+        await cart.addByCount(1, 1, explicitAddressId);
+        return requests;
+      },
+    );
     expect(requests[0]?.body).toMatchObject({ addressId: explicitAddressId });
   });
 
   it("throws NoDeliveryAddressError when neither an explicit nor a session address is available", async () => {
-    const cart = new ShopCart(new ShopApiClient(null), randomSession({ addressId: null }));
+    const cart = new ShopCart(
+      new ShopApiClient(null),
+      randomSession({ addressId: null }),
+    );
     await expect(cart.addByCount(1, 1)).rejects.toThrow(NoDeliveryAddressError);
   });
 });
@@ -61,12 +81,19 @@ describe("ShopCart.addByCount", () => {
 describe("ShopCart.remove", () => {
   it("sends zero for both weight and quantity", async () => {
     const productId = Math.floor(Math.random() * 1000000);
-    const requests = await withFakeFetch({ success: true, data: true, messages: [] }, async (requests) => {
-      const cart = new ShopCart(new ShopApiClient(null), randomSession());
-      await cart.remove(productId);
-      return requests;
+    const requests = await withFakeFetch(
+      { success: true, data: true, messages: [] },
+      async (requests) => {
+        const cart = new ShopCart(new ShopApiClient(null), randomSession());
+        await cart.remove(productId);
+        return requests;
+      },
+    );
+    expect(requests[0]?.body).toMatchObject({
+      id: productId,
+      weight: 0,
+      quantity: 0,
     });
-    expect(requests[0]?.body).toMatchObject({ id: productId, weight: 0, quantity: 0 });
   });
 });
 
@@ -75,13 +102,28 @@ describe("ShopCart.contents", () => {
     const addressId = Math.floor(Math.random() * 1000000);
     const session = randomSession();
     const requests = await withFakeFetch(
-      { success: true, data: { totalPrice: 0, deliveryFee: 0, items: null, cartUserAddress: null }, messages: [] },
+      {
+        success: true,
+        data: {
+          totalPrice: 0,
+          deliveryFee: 0,
+          items: null,
+          cartUserAddress: null,
+        },
+        messages: [],
+      },
       async (requests) => {
-        await new ShopCart(new ShopApiClient(null), session).contents(addressId);
+        await new ShopCart(new ShopApiClient(null), session).contents(
+          addressId,
+        );
         return requests;
       },
     );
-    expect(requests[0]?.body).toEqual({ addressId, lat: session.lat, lng: session.lng });
+    expect(requests[0]?.body).toEqual({
+      addressId,
+      lat: session.lat,
+      lng: session.lng,
+    });
   });
 
   it("excludes auto-added packaging bag line items", async () => {
@@ -89,16 +131,48 @@ describe("ShopCart.contents", () => {
       totalPrice: 802.5,
       deliveryFee: 0,
       items: [
-        { id: 1, name: "Banana Sabrostar kg", price: 802.5, count: 0, weight: 1500, isKilogram: true, isBag: false, isMissing: false, stockDetails: { availableCount: 50, availableWeight: 0 } },
-        { id: 2, name: 'Polyethylene pack "Yerevan City"', price: 50, count: 1, weight: 0, isKilogram: false, isBag: true, isMissing: false, stockDetails: null },
+        {
+          id: 1,
+          name: "Banana Sabrostar kg",
+          price: 802.5,
+          count: 0,
+          weight: 1500,
+          isKilogram: true,
+          isBag: false,
+          isMissing: false,
+          stockDetails: { availableCount: 50, availableWeight: 0 },
+        },
+        {
+          id: 2,
+          name: 'Polyethylene pack "Yerevan City"',
+          price: 50,
+          count: 1,
+          weight: 0,
+          isKilogram: false,
+          isBag: true,
+          isMissing: false,
+          stockDetails: null,
+        },
       ],
       cartUserAddress: null,
     };
-    const cart = await withFakeFetch({ success: true, data: raw, messages: [] }, () =>
-      new ShopCart(new ShopApiClient(null), randomSession()).contents(),
+    const cart = await withFakeFetch(
+      { success: true, data: raw, messages: [] },
+      () => new ShopCart(new ShopApiClient(null), randomSession()).contents(),
     );
     expect(cart.items).toEqual([
-      { id: 1, name: "Banana Sabrostar kg", price: 802.5, count: 0, weight: 1500, isKilogram: true, isBag: false, isMissing: false, availableCount: 50, availableWeight: 0 },
+      {
+        id: 1,
+        name: "Banana Sabrostar kg",
+        price: 802.5,
+        count: 0,
+        weight: 1500,
+        isKilogram: true,
+        isBag: false,
+        isMissing: false,
+        availableCount: 50,
+        availableWeight: 0,
+      },
     ]);
   });
 
@@ -107,14 +181,29 @@ describe("ShopCart.contents", () => {
       totalPrice: 265,
       deliveryFee: 700,
       items: [
-        { id: 69658, name: "Potato (armenian) kg", price: 265, count: 0, weight: 1000, isKilogram: true, isBag: false, isMissing: true, stockDetails: { availableCount: 0, availableWeight: 0 } },
+        {
+          id: 69658,
+          name: "Potato (armenian) kg",
+          price: 265,
+          count: 0,
+          weight: 1000,
+          isKilogram: true,
+          isBag: false,
+          isMissing: true,
+          stockDetails: { availableCount: 0, availableWeight: 0 },
+        },
       ],
       cartUserAddress: null,
     };
-    const cart = await withFakeFetch({ success: true, data: raw, messages: [] }, () =>
-      new ShopCart(new ShopApiClient(null), randomSession()).contents(),
+    const cart = await withFakeFetch(
+      { success: true, data: raw, messages: [] },
+      () => new ShopCart(new ShopApiClient(null), randomSession()).contents(),
     );
-    expect(cart.items[0]).toMatchObject({ isMissing: true, availableCount: 0, availableWeight: 0 });
+    expect(cart.items[0]).toMatchObject({
+      isMissing: true,
+      availableCount: 0,
+      availableWeight: 0,
+    });
   });
 
   it("defaults missing stock details to zero availability", async () => {
@@ -122,20 +211,40 @@ describe("ShopCart.contents", () => {
       totalPrice: 0,
       deliveryFee: 0,
       items: [
-        { id: 1, name: "Item without stock details", price: 100, count: 1, weight: 0, isKilogram: false, isBag: false, isMissing: false, stockDetails: null },
+        {
+          id: 1,
+          name: "Item without stock details",
+          price: 100,
+          count: 1,
+          weight: 0,
+          isKilogram: false,
+          isBag: false,
+          isMissing: false,
+          stockDetails: null,
+        },
       ],
       cartUserAddress: null,
     };
-    const cart = await withFakeFetch({ success: true, data: raw, messages: [] }, () =>
-      new ShopCart(new ShopApiClient(null), randomSession()).contents(),
+    const cart = await withFakeFetch(
+      { success: true, data: raw, messages: [] },
+      () => new ShopCart(new ShopApiClient(null), randomSession()).contents(),
     );
-    expect(cart.items[0]).toMatchObject({ availableCount: 0, availableWeight: 0 });
+    expect(cart.items[0]).toMatchObject({
+      availableCount: 0,
+      availableWeight: 0,
+    });
   });
 
   it("returns an empty item list when the cart has no items yet", async () => {
-    const raw = { totalPrice: 0, deliveryFee: 0, items: null, cartUserAddress: null };
-    const cart = await withFakeFetch({ success: true, data: raw, messages: [] }, () =>
-      new ShopCart(new ShopApiClient(null), randomSession()).contents(),
+    const raw = {
+      totalPrice: 0,
+      deliveryFee: 0,
+      items: null,
+      cartUserAddress: null,
+    };
+    const cart = await withFakeFetch(
+      { success: true, data: raw, messages: [] },
+      () => new ShopCart(new ShopApiClient(null), randomSession()).contents(),
     );
     expect(cart.items).toEqual([]);
   });

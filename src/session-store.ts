@@ -12,7 +12,11 @@ export interface StoredSession {
   lng: number | null;
 }
 
-const DEFAULT_SESSION_FILE = join(homedir(), ".yerevan-city-mcp", "session.json");
+const DEFAULT_SESSION_FILE = join(
+  homedir(),
+  ".yerevan-city-mcp",
+  "session.json",
+);
 
 /**
  * Persists the logged-in user's session (JWT + default address) to a file,

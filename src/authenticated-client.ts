@@ -1,4 +1,4 @@
-import { SessionStore, StoredSession } from "./session-store.js";
+import type { SessionStore, StoredSession } from "./session-store.js";
 import { ShopApiClient } from "./shop-api-client.js";
 
 export class NotLoggedInError extends Error {

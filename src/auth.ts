@@ -1,6 +1,6 @@
-import { ShopApiClient } from "./shop-api-client.js";
-import { SessionStore } from "./session-store.js";
 import { internationalNumber, nationalNumber } from "./phone-number.js";
+import type { SessionStore } from "./session-store.js";
+import { ShopApiClient } from "./shop-api-client.js";
 
 interface VerifyResponse {
   id: string;

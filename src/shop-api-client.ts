@@ -6,7 +6,9 @@ export class ShopApiError extends Error {
     public readonly status: number,
     public readonly body: string,
   ) {
-    super(`yerevan-city.am API call to ${endpoint} failed with status ${status}: ${body}`);
+    super(
+      `yerevan-city.am API call to ${endpoint} failed with status ${status}: ${body}`,
+    );
   }
 }
 
@@ -47,7 +49,11 @@ export class ShopApiClient {
     const envelope = JSON.parse(text) as ApiEnvelope<T>;
     if (!envelope.success) {
       const message = envelope.messages.map((m) => m.value).join("; ");
-      throw new ShopApiError(endpoint, response.status, message || "API reported failure");
+      throw new ShopApiError(
+        endpoint,
+        response.status,
+        message || "API reported failure",
+      );
     }
     return envelope.data;
   }
