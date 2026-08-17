@@ -1,9 +1,8 @@
-import { describe, it, expect } from "vitest";
-import { mkdtemp } from "node:fs/promises";
+import { mkdtemp, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { stat } from "node:fs/promises";
-import { SessionStore, StoredSession } from "../src/session-store.js";
+import { describe, expect, it } from "vitest";
+import { SessionStore, type StoredSession } from "../src/session-store.js";
 
 async function tempSessionFile(): Promise<string> {
   const dir = await mkdtemp(join(tmpdir(), "yerevan-city-mcp-test-"));

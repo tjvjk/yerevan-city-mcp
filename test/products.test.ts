@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { ShopApiClient } from "../src/shop-api-client.js";
+import { describe, expect, it } from "vitest";
 import { ProductSearch } from "../src/products.js";
+import { ShopApiClient } from "../src/shop-api-client.js";
 import { withFakeFetch } from "./fake-fetch.js";
 
 describe("ProductSearch", () => {
@@ -20,12 +20,14 @@ describe("ProductSearch", () => {
           minimumWeight: 500,
           weightStep: 100,
           discountPercent: 0,
-          photo: "https://media.yerevan-city.am/api/Image/Resize/ProductPhoto/1044057.png",
+          photo:
+            "https://media.yerevan-city.am/api/Image/Resize/ProductPhoto/1044057.png",
         },
       ],
     };
-    const result = await withFakeFetch({ success: true, data: raw, messages: [] }, () =>
-      new ProductSearch(new ShopApiClient(null)).run("banan", 1),
+    const result = await withFakeFetch(
+      { success: true, data: raw, messages: [] },
+      () => new ProductSearch(new ShopApiClient(null)).run("banan", 1),
     );
     expect(result.products[0]).toEqual({
       id,
@@ -45,7 +47,11 @@ describe("ProductSearch", () => {
     const query = `query-${Math.random().toString(36).slice(2)}`;
     const page = Math.floor(2 + Math.random() * 10);
     const requests = await withFakeFetch(
-      { success: true, data: { pageCount: 0, itemCount: 0, products: [] }, messages: [] },
+      {
+        success: true,
+        data: { pageCount: 0, itemCount: 0, products: [] },
+        messages: [],
+      },
       async (requests) => {
         await new ProductSearch(new ShopApiClient(null)).run(query, page);
         return requests;

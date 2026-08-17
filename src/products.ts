@@ -1,5 +1,5 @@
-import { ShopApiClient } from "./shop-api-client.js";
-import { Product, ProductSearchResult } from "./types.js";
+import type { ShopApiClient } from "./shop-api-client.js";
+import type { Product, ProductSearchResult } from "./types.js";
 
 interface RawProduct {
   id: number;

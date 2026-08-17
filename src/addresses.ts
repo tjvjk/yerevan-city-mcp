@@ -1,5 +1,5 @@
-import { ShopApiClient } from "./shop-api-client.js";
-import { Address } from "./types.js";
+import type { ShopApiClient } from "./shop-api-client.js";
+import type { Address } from "./types.js";
 
 interface RawAddress {
   id: number;

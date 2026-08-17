@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { ShopApiClient } from "../src/shop-api-client.js";
+import { describe, expect, it } from "vitest";
 import { Addresses } from "../src/addresses.js";
+import { ShopApiClient } from "../src/shop-api-client.js";
 import { withFakeFetch } from "./fake-fetch.js";
 
 describe("Addresses", () => {
@@ -10,7 +10,7 @@ describe("Addresses", () => {
       addresses: [
         {
           id,
-          lat: 40.178490,
+          lat: 40.17849,
           lng: 44.509726,
           street: "Երևան, Զաքյան 3",
           city: "Երևան",
@@ -25,17 +25,27 @@ describe("Addresses", () => {
         },
       ],
     };
-    const addresses = await withFakeFetch({ success: true, data: raw, messages: [] }, () =>
-      new Addresses(new ShopApiClient(null)).all(),
+    const addresses = await withFakeFetch(
+      { success: true, data: raw, messages: [] },
+      () => new Addresses(new ShopApiClient(null)).all(),
     );
     expect(addresses).toEqual([
-      { id, lat: raw.addresses[0].lat, lng: raw.addresses[0].lng, street: raw.addresses[0].street, city: raw.addresses[0].city, title: "տուն", isDefault: true },
+      {
+        id,
+        lat: raw.addresses[0].lat,
+        lng: raw.addresses[0].lng,
+        street: raw.addresses[0].street,
+        city: raw.addresses[0].city,
+        title: "տուն",
+        isDefault: true,
+      },
     ]);
   });
 
   it("returns an empty list when the account has no saved addresses", async () => {
-    const addresses = await withFakeFetch({ success: true, data: { addresses: [] }, messages: [] }, () =>
-      new Addresses(new ShopApiClient(null)).all(),
+    const addresses = await withFakeFetch(
+      { success: true, data: { addresses: [] }, messages: [] },
+      () => new Addresses(new ShopApiClient(null)).all(),
     );
     expect(addresses).toEqual([]);
   });

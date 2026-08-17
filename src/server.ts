@@ -1,10 +1,10 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { Addresses } from "./addresses.js";
 import { Auth } from "./auth.js";
 import { AuthenticatedClient } from "./authenticated-client.js";
-import { Addresses } from "./addresses.js";
-import { ProductSearch } from "./products.js";
 import { ShopCart } from "./cart.js";
+import { ProductSearch } from "./products.js";
 import { SessionStore } from "./session-store.js";
 
 /**
@@ -33,16 +33,21 @@ export function buildServer(): McpServer {
     },
     async ({ phone }) => {
       await auth.requestCode(phone);
-      return textResult(`SMS code sent to ${phone}, ask the user for the code and call confirm_login_code`);
+      return textResult(
+        `SMS code sent to ${phone}, ask the user for the code and call confirm_login_code`,
+      );
     },
   );
 
   server.registerTool(
     "confirm_login_code",
     {
-      description: "Complete login with the SMS code received after request_login_code.",
+      description:
+        "Complete login with the SMS code received after request_login_code.",
       inputSchema: {
-        phone: z.string().describe("Same Armenian phone number passed to request_login_code"),
+        phone: z
+          .string()
+          .describe("Same Armenian phone number passed to request_login_code"),
         code: z.string().describe("Numeric code received by SMS"),
       },
     },
@@ -55,7 +60,8 @@ export function buildServer(): McpServer {
   server.registerTool(
     "search_products",
     {
-      description: "Search the yerevan-city.am product catalogue by free-text query. Requires login.",
+      description:
+        "Search the yerevan-city.am product catalogue by free-text query. Requires login.",
       inputSchema: {
         query: z.string().describe("Search text, e.g. a product name"),
         page: z.number().int().min(1).default(1),
@@ -92,17 +98,35 @@ export function buildServer(): McpServer {
         "Also report totalPrice and deliveryFee from the response to the user as the current cart total including delivery — don't just say the item was added without stating the running total.",
       inputSchema: {
         productId: z.number().int().describe("Product id from search_products"),
-        count: z.number().int().min(1).optional().describe("Number of pieces, for piece-counted products"),
-        grams: z.number().int().min(1).optional().describe("Weight in grams, for weight-based products"),
-        addressId: z.number().int().optional().describe("Delivery address id from list_addresses, defaults to the account's default address"),
+        count: z
+          .number()
+          .int()
+          .min(1)
+          .optional()
+          .describe("Number of pieces, for piece-counted products"),
+        grams: z
+          .number()
+          .int()
+          .min(1)
+          .optional()
+          .describe("Weight in grams, for weight-based products"),
+        addressId: z
+          .number()
+          .int()
+          .optional()
+          .describe(
+            "Delivery address id from list_addresses, defaults to the account's default address",
+          ),
       },
     },
     async ({ productId, count, grams, addressId }) => {
       const client = await authenticated.client();
       const session = await authenticated.session();
       const cart = new ShopCart(client, session);
-      if (grams !== undefined) await cart.addByWeight(productId, grams, addressId);
-      else if (count !== undefined) await cart.addByCount(productId, count, addressId);
+      if (grams !== undefined)
+        await cart.addByWeight(productId, grams, addressId);
+      else if (count !== undefined)
+        await cart.addByCount(productId, count, addressId);
       else throw new Error("Either count or grams must be provided");
       const contents = await cart.contents(addressId);
       const addedItem = contents.items.find((entry) => entry.id === productId);
@@ -127,7 +151,13 @@ export function buildServer(): McpServer {
         "Remove a product from the yerevan-city.am cart. Also use this to clean up any item that get_cart or add_to_cart reported as isMissing (out of stock) — a missing item never gets delivered, so it should not be left sitting in the cart.",
       inputSchema: {
         productId: z.number().int().describe("Product id to remove"),
-        addressId: z.number().int().optional().describe("Delivery address id, defaults to the account's default address"),
+        addressId: z
+          .number()
+          .int()
+          .optional()
+          .describe(
+            "Delivery address id, defaults to the account's default address",
+          ),
       },
     },
     async ({ productId, addressId }) => {
@@ -147,7 +177,13 @@ export function buildServer(): McpServer {
         "If any item has isMissing true, call remove_from_cart for it before reporting the cart as done — don't just mention it and leave it there. " +
         "Always state totalPrice and deliveryFee together as the full amount the user will pay, including delivery.",
       inputSchema: {
-        addressId: z.number().int().optional().describe("Delivery address id from list_addresses, defaults to the account's default address"),
+        addressId: z
+          .number()
+          .int()
+          .optional()
+          .describe(
+            "Delivery address id from list_addresses, defaults to the account's default address",
+          ),
       },
     },
     async ({ addressId }) => {

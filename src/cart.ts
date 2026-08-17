@@ -1,6 +1,6 @@
-import { ShopApiClient } from "./shop-api-client.js";
-import { StoredSession } from "./session-store.js";
-import { Cart, CartItem } from "./types.js";
+import type { StoredSession } from "./session-store.js";
+import type { ShopApiClient } from "./shop-api-client.js";
+import type { Cart, CartItem } from "./types.js";
 
 interface RawCartItem {
   id: number;
@@ -59,11 +59,19 @@ export class ShopCart {
     private readonly session: StoredSession,
   ) {}
 
-  async addByCount(productId: number, count: number, addressId?: number): Promise<void> {
+  async addByCount(
+    productId: number,
+    count: number,
+    addressId?: number,
+  ): Promise<void> {
     await this.update(productId, 0, count, addressId);
   }
 
-  async addByWeight(productId: number, grams: number, addressId?: number): Promise<void> {
+  async addByWeight(
+    productId: number,
+    grams: number,
+    addressId?: number,
+  ): Promise<void> {
     await this.update(productId, grams, grams, addressId);
   }
 
@@ -81,9 +89,7 @@ export class ShopCart {
     return {
       totalPrice: raw.totalPrice,
       deliveryFee: raw.deliveryFee,
-      items: (raw.items ?? [])
-        .filter((item) => !item.isBag)
-        .map(toCartItem),
+      items: (raw.items ?? []).filter((item) => !item.isBag).map(toCartItem),
       address:
         raw.cartUserAddress === null
           ? null
