@@ -1,6 +1,6 @@
 {
   "name": "yerevan-city-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MCP server for browsing yerevan-city.am and building a cart",
   "main": "dist/index.js",
   "bin": {

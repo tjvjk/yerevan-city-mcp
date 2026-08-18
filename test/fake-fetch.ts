@@ -15,16 +15,28 @@ export function withFakeFetch<T>(
   responseBody: unknown,
   run: (requests: RecordedRequest[]) => Promise<T>,
 ): Promise<T> {
+  return withFakeFetchByEndpoint(() => responseBody, run);
+}
+
+/**
+ * Like withFakeFetch, but computes the JSON body per call from the request's
+ * URL, for flows that hit multiple endpoints with different responses.
+ */
+export function withFakeFetchByEndpoint<T>(
+  responseBodyFor: (url: string) => unknown,
+  run: (requests: RecordedRequest[]) => Promise<T>,
+): Promise<T> {
   const requests: RecordedRequest[] = [];
   const original = globalThis.fetch;
   globalThis.fetch = (async (input: string | URL, init?: RequestInit) => {
+    const url = String(input);
     requests.push({
-      url: String(input),
+      url,
       method: init?.method ?? "GET",
       headers: (init?.headers ?? {}) as Record<string, string>,
       body: init?.body ? JSON.parse(String(init.body)) : undefined,
     });
-    return new Response(JSON.stringify(responseBody), {
+    return new Response(JSON.stringify(responseBodyFor(url)), {
       status: 200,
       headers: { "content-type": "application/json" },
     });
